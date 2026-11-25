@@ -50,6 +50,7 @@ This project implements a complete, self-contained distributed search engine wri
 | Recovery | Incremental Recovery Mgr | **Implemented** | Sequence-range replay $[S_{\text{repl}}+1, S_{\text{prim}}]$, resumption after interruption, HISTORY_UNAVAILABLE detection |
 | Verification | Independent Reference Engine | **Implemented** | Dual-execution cross-validation, 100% ranking equivalence, score tolerance (<1e-5), post-recovery convergence |
 | Evaluation | WikiText Benchmarking | **Implemented** | Search latency (p50: 0.69-1.74ms), recovery speedup (up to 16.28x), and 4 Matplotlib plots |
+| Dashboard | Interactive Web Testing UI | **Implemented** | Browser dashboard (`http://localhost:8080`) for user-driven benchmarks, custom inputs & live metrics |
 | Deployment | Docker Compose Cluster | **Implemented** | Multi-container sharded deployment with isolated volumes & Click CLI |
 
 ---
@@ -413,7 +414,7 @@ Visual charts are generated and saved under `experiments/plots/`:
 
 ---
 
-## 19. TA Evaluation & Quick-Start Guide
+## 19. Evaluation & Quick-Start Guide
 
 ### 19.1 Automated 1-Command Verification
 Run the automated end-to-end evaluation script demonstrating multi-shard startup, document ingestion, BM25 search, version replacement, tombstones, replica lag, incremental recovery, and 100% convergence:
@@ -448,7 +449,48 @@ python -m client.cli delete -i "doc_101" -v 2
 python -m client.cli recover -s 0
 ```
 
-### 19.4 Docker & Docker Compose Deployment
+### 19.4 Web UI Dashboard Testing (Interactive Workbench)
+
+A zero-dependency HTTP web dashboard is provided at `client/web_dashboard.py`. It translates browser UI actions to live gRPC calls via `SearchEngineClient`, allowing users to provide custom inputs and inspect real-time performance metrics directly in the browser.
+
+#### 1. Start the Web Dashboard Server
+```bash
+# Start the web dashboard (serves on port 8080, connects to Coordinator on 127.0.0.1:50050)
+python client/web_dashboard.py --port 8080 --coordinator 127.0.0.1:50050
+```
+Open **[http://localhost:8080](http://localhost:8080)** in your browser.
+
+#### 2. How to Test Each Feature in the Web UI:
+
+- **⚡ Custom Search Benchmark (Tab 1):**
+  - **Input:** Type or paste your own list of queries in the textarea (one per line). Set repetitions (e.g., `30`) and top-$k$ depth (`5`, `10`, or `20`).
+  - **Action:** Click **"▶ Run Custom Benchmark"**.
+  - **Metrics Collected:** Live measured **QPS throughput**, latency distribution (**$p_{50}$ median, $p_{95}$, $p_{99}$ tail latencies** in milliseconds), Min, Mean, and Max latency, accompanied by graphical percentile progress bars.
+
+- **🔄 Custom Recovery & Speedup Benchmark (Tab 2):**
+  - **Input:** Choose target shard (`Shard 0` or `Shard 1`), specify the number of missed writes to inject (e.g., `25` or `50`), and set replay batch size.
+  - **Action:** Click **"▶ Run Recovery & Speedup Test"**.
+  - **Metrics Collected:** Live measured **Incremental duration ($T_{\text{incr}}$)** vs. **Full Rebuild duration ($T_{\text{full}}$)**, **Speedup Ratio ($T_{\text{full}} / T_{\text{incr}}$)**, **Network bytes transferred**, **Data Saved percentage (%)**, and a live transcript confirming that the replica applied sequence matches the primary.
+
+- **⚖️ Dual-Engine Oracle Validator (Tab 3):**
+  - **Input:** Enter any search query string.
+  - **Action:** Click **"Validate Equivalence"**.
+  - **Metrics Collected:** Executes search concurrently against both the Distributed Cluster and the independent single-node Reference Engine. Displays side-by-side rankings and verifies that the maximum score discrepancy $\Delta = |Score_{\text{dist}} - Score_{\text{ref}}| < 10^{-5}$ with a green `VALIDATION PASSED` badge.
+
+- **📝 Manual CRUD & Monotonic Version Management (Tab 4):**
+  - **Input:** Enter `Doc ID`, `Content`, and `Expected Version`.
+  - **Insert:** Validates deterministic MD5 routing to Shard 0 or 1 and allocates a monotonic sequence number.
+  - **Replace:** Tests version increment ($v_1 \to v_2$). If you specify a stale expected version, it displays the rejected `StaleVersionError`.
+  - **Delete:** Creates a versioned tombstone, removes postings from inverted search results, and demonstrates anti-resurrection protection.
+
+- **📦 Custom Batch Ingestion (Tab 5):**
+  - **Input:** Paste multiple JSONL document records in the textarea.
+  - **Action:** Click **"Ingest Batch"**.
+  - **Metrics Collected:** Measures batch ingestion elapsed time, ingestion rate (documents/second), and per-shard distribution count.
+
+---
+
+### 19.5 Docker & Docker Compose Deployment
 Deploy the full 2-shard cluster (Coordinator + 2 Primaries + 2 Replicas) with persistent volumes:
 ```bash
 # Build and start all 5 microservices in the background
