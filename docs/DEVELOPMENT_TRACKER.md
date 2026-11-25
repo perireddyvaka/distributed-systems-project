@@ -6,8 +6,8 @@
 - **Project Objective:** Implement an Elasticsearch-inspired distributed text search engine using custom sharded inverted indexes, primary-replica replication, persistent SQLite update logs, and incremental recovery by replaying missed sequence updates.
 - **Repository Location:** `/Users/perireddyvaka/IIITH/MS/Monsoon-26/DS/assignments/project`
 - **Current Version:** `0.1.0`
-- **Current Milestone:** `M1 — Text processing and custom inverted index`
-- **Overall Progress:** 15%
+- **Current Milestone:** `M2 — BM25 ranking`
+- **Overall Progress:** 25%
 - **Last Updated Date:** 2026-11-25
 - **Current Project Status:** IN PROGRESS
 
@@ -29,7 +29,7 @@
 | Milestone | Name | Status | Completion | Start Date | Completion Date | Evidence |
 |---|---|---|---|---|---|---|
 | M0 | Repository inspection and project foundation | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 unit tests passed (test_foundation.py) |
-| M1 | Text processing and custom inverted index | IN PROGRESS | 0% | 2026-11-25 | — | — |
+| M1 | Text processing and custom inverted index | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 18 unit tests passed (tokenizer, index, doc mgr) |
 | M2 | BM25 ranking | NOT STARTED | 0% | — | — | — |
 | M3 | SQLite persistence | NOT STARTED | 0% | — | — | — |
 | M4 | Sharding and coordinator | NOT STARTED | 0% | — | — | — |
@@ -58,10 +58,10 @@
 ### Milestone M1: Text Processing and Custom Inverted Index
 | Task ID | Task Description | Owner | Status | Dependencies | Files/Modules | Test IDs | Evidence | Notes |
 |---|---|---|---|---|---|---|---|---|
-| M1-001 | Implement text tokenizer & normalizer | Primary Dev | NOT STARTED | M0 | `indexing/tokenizer.py` | `test_tokenizer.py` | — | Lowercase, punct, whitespace |
-| M1-002 | Implement in-memory inverted index | Primary Dev | NOT STARTED | M1-001 | `indexing/inverted_index.py` | `test_inverted_index.py` | — | Postings map, doc length, DF |
-| M1-003 | Implement document manager with versioning & tombstones | Primary Dev | NOT STARTED | M1-002 | `indexing/document_manager.py` | `test_document_manager.py` | — | Monotonic versions, tombstones |
-| M1-004 | CRUD operations unit test suite | Primary Dev | NOT STARTED | M1-003 | `tests/unit/test_crud.py` | `pytest tests/unit/` | — | Insert, replace, delete, stale reject |
+| M1-001 | Implement text tokenizer & normalizer | Primary Dev | VALIDATED | M0 | `indexing/tokenizer.py` | `test_tokenizer.py` | 6 passed (TE-002) | Lowercase, punct, accents, contractions |
+| M1-002 | Implement in-memory inverted index | Primary Dev | VALIDATED | M1-001 | `indexing/inverted_index.py` | `test_inverted_index.py` | 5 passed (TE-002) | Postings map, doc length, DF, clear, reconstruct |
+| M1-003 | Implement document manager with versioning & tombstones | Primary Dev | VALIDATED | M1-002 | `indexing/document_manager.py` | `test_document_manager.py` | 7 passed (TE-002) | Monotonic versions, tombstones, anti-resurrection |
+| M1-004 | CRUD operations unit test suite | Primary Dev | VALIDATED | M1-003 | `tests/unit/test_document_manager.py` | `pytest tests/unit/` | 25 total passed (TE-002) | Insert, replace, delete, tombstone conflict |
 
 ---
 
@@ -70,6 +70,7 @@
 | Test ID | Test Command | Result | Passed | Failed | Date | Notes / Log Reference |
 |---|---|---|---|---|---|---|
 | TE-001 | `./.venv/bin/pytest tests/unit/test_foundation.py` | PASSED | 7 | 0 | 2026-11-25 | Verified enums, models, search tie-breaking, exceptions, config, schema, and proto serialization |
+| TE-002 | `./.venv/bin/pytest tests/unit/` | PASSED | 25 | 0 | 2026-11-25 | Verified tokenizer, inverted index, document manager CRUD, versions, tombstones, and anti-resurrection |
 
 ---
 

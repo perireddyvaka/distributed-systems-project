@@ -1,7 +1,7 @@
 # Distributed Search Engine with Incremental Index Recovery
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-M0%20Foundation%20Validated-green.svg)](docs/DEVELOPMENT_TRACKER.md)
+[![Status](https://img.shields.io/badge/status-M1%20Indexing%20Validated-green.svg)](docs/DEVELOPMENT_TRACKER.md)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 
 ---
@@ -41,7 +41,7 @@ This project implements a complete, self-contained distributed search engine wri
 | Foundation | Project Skeleton & Config | **Implemented** | Python 3.13, pytest, .env, pyproject.toml |
 | Protocols | gRPC & Protobuf Contracts | **Implemented** | Coordinator, Shard, Replication services |
 | Storage | SQLite Schema (WAL) | **Implemented** | documents, postings, update_log, metadata |
-| Indexing | Custom Inverted Index | In Progress (M1) | Custom Python dictionary & posting lists |
+| Indexing | Custom Inverted Index | **Implemented** | Custom Python dictionary, posting lists, document manager, tombstones |
 | Ranking | BM25 Distributed Scorer | Planned (M2) | Okapi BM25 with global stats snapshot |
 | Persistence | Repositories & WAL Mode | Planned (M3) | Atomic transaction boundaries |
 | Sharding | Coordinator Scatter-Gather | Planned (M4) | Deterministic routing & Top-K merger |
