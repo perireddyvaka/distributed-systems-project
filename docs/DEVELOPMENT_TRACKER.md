@@ -6,8 +6,8 @@
 - **Project Objective:** Implement an Elasticsearch-inspired distributed text search engine using custom sharded inverted indexes, primary-replica replication, persistent SQLite update logs, and incremental recovery by replaying missed sequence updates.
 - **Repository Location:** `/Users/perireddyvaka/IIITH/MS/Monsoon-26/DS/assignments/project`
 - **Current Version:** `0.1.0`
-- **Current Milestone:** `M3 — SQLite persistence`
-- **Overall Progress:** 35%
+- **Current Milestone:** `M4 — Sharding and coordinator`
+- **Overall Progress:** 45%
 - **Last Updated Date:** 2026-11-25
 - **Current Project Status:** IN PROGRESS
 
@@ -31,7 +31,7 @@
 | M0 | Repository inspection and project foundation | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 unit tests passed (test_foundation.py) |
 | M1 | Text processing and custom inverted index | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 18 unit tests passed (tokenizer, index, doc mgr) |
 | M2 | BM25 ranking | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 8 unit tests passed (test_bm25.py) |
-| M3 | SQLite persistence | NOT STARTED | 0% | — | — | — |
+| M3 | SQLite persistence | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 unit tests passed (test_storage.py) |
 | M4 | Sharding and coordinator | NOT STARTED | 0% | — | — | — |
 | M5 | Primary-replica replication | NOT STARTED | 0% | — | — | — |
 | M6 | Incremental replica recovery | NOT STARTED | 0% | — | — | — |
@@ -71,6 +71,15 @@
 | M2-003 | Implement multi-term query scoring & tie-breaking | Primary Dev | VALIDATED | M2-002 | `indexing/bm25.py` | `test_bm25.py` | Passed (TE-003) | Score DESC, doc_id ASC tie-break |
 | M2-004 | Known-answer ranking tests | Primary Dev | VALIDATED | M2-003 | `tests/unit/test_bm25.py` | `test_bm25_idf_hand_calculated` | Passed (TE-003) | Hand-calculated values validated |
 
+### Milestone M3: SQLite Persistence
+| Task ID | Task Description | Owner | Status | Dependencies | Files/Modules | Test IDs | Evidence | Notes |
+|---|---|---|---|---|---|---|---|---|
+| M3-001 | Implement Database connection manager with WAL mode | Primary Dev | VALIDATED | M0 | `storage/database.py` | `test_database_wal_mode` | 7 passed (TE-004) | WAL mode, foreign keys, thread-safe |
+| M3-002 | Implement DocumentRepository & IndexRepository | Primary Dev | VALIDATED | M3-001 | `storage/document_repository.py`, `storage/index_repository.py` | `test_document_repository`, `test_index_repository` | Passed (TE-004) | Document CRUD, tombstones, postings |
+| M3-003 | Implement LogRepository & ShardMetadataRepository | Primary Dev | VALIDATED | M3-001 | `storage/log_repository.py` | `test_log_repository` | Passed (TE-004) | Per-shard sequence counter, update_log |
+| M3-004 | Implement atomic primary mutation and replica apply boundaries | Primary Dev | VALIDATED | M3-002, M3-003 | `storage/shard_store.py` | `test_atomic_primary_mutation_rollback` | Passed (TE-004) | BEGIN IMMEDIATE single transaction |
+| M3-005 | Process crash simulation and index reconstruction from database | Primary Dev | VALIDATED | M3-004 | `storage/shard_store.py` | `test_restart_and_index_reconstruction` | Passed (TE-004) | Complete in-memory reconstruction & BM25 search |
+
 ---
 
 ## E. Test Evidence Table
@@ -80,6 +89,7 @@
 | TE-001 | `./.venv/bin/pytest tests/unit/test_foundation.py` | PASSED | 7 | 0 | 2026-11-25 | Verified enums, models, search tie-breaking, exceptions, config, schema, and proto serialization |
 | TE-002 | `./.venv/bin/pytest tests/unit/` | PASSED | 25 | 0 | 2026-11-25 | Verified tokenizer, inverted index, document manager CRUD, versions, tombstones, and anti-resurrection |
 | TE-003 | `./.venv/bin/pytest tests/unit/test_bm25.py` | PASSED | 8 | 0 | 2026-11-25 | Verified BM25 hand-calculated IDF and scores, multi-term, tie-breaking, length normalization, global stats |
+| TE-004 | `./.venv/bin/pytest tests/unit/test_storage.py` | PASSED | 7 | 0 | 2026-11-25 | Verified WAL mode, document repo, index repo, log repo, checkpoints, atomic rollback, and process restart reconstruction |
 
 ---
 
