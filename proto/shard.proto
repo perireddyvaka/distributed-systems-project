@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package shard;
+
+// ShardService is exposed by each Primary Shard for CRUD, stats aggregation, local search, and update log access.
+service ShardService {
+    rpc InsertDocument(ShardInsertRequest) returns (ShardMutationResponse);
+    rpc ReplaceDocument(ShardReplaceRequest) returns (ShardMutationResponse);
+    rpc DeleteDocument(ShardDeleteRequest) returns (ShardMutationResponse);
+    rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse);
+    
+    // Distributed search operations
+    rpc GetRankingStats(RankingStatsRequest) returns (RankingStatsResponse);
+    rpc SearchLocal(LocalSearchRequest) returns (LocalSearchResponse);
+
+    // Replication and Recovery log retrieval
+    rpc GetShardStatus(ShardStatusRequest) returns (ShardStatusResponse);
+    rpc GetLatestSequence(LatestSequenceRequest) returns (LatestSequenceResponse);
+    rpc GetUpdatesAfter(GetUpdatesAfterRequest) returns (GetUpdatesAfterResponse);
+}
+
+message ShardInsertRequest {
+    string doc_id = 1;
+    string content = 2;
+}
+
+message ShardReplaceRequest {
+    string doc_id = 1;
+    string content = 2;
+    int64 expected_version = 3;
+}
+
+message ShardDeleteRequest {
+    string doc_id = 1;
+    int64 expected_version = 2;
+}
+
+message ShardMutationResponse {
+    bool success = 1;
+    int32 shard_id = 2;
+    int64 sequence_number = 3;
+    int64 version = 4;
+    string error_code = 5;
+    string error_message = 6;
+}
+
+message GetDocumentRequest {
+    string doc_id = 1;
+}
+
+message GetDocumentResponse {
+    bool found = 1;
+    string doc_id = 2;
+    string content = 3;
+    int64 version = 4;
+    bool is_deleted = 5;
+    int64 document_length = 6;
+}
+
+message RankingStatsRequest {
+    repeated string terms = 1;
+}
+
+message TermFrequencyStat {
+    string term = 1;
+    int64 doc_frequency = 2;
+}
+
+message RankingStatsResponse {
+    int32 shard_id = 1;
+    int64 total_documents = 2;
+    int64 total_length = 3;
+    repeated TermFrequencyStat term_stats = 4;
+}
+
+message GlobalRankingSnapshot {
+    int64 total_documents = 1;
+    double avg_document_length = 2;
+    map<string, int64> document_frequencies = 3;
+    int64 stats_version = 4;
+}
+
+message LocalSearchRequest {
+    string query = 1;
+    int32 top_k = 2;
+    GlobalRankingSnapshot global_stats = 3;
+}
+
+message LocalSearchResultItem {
+    string doc_id = 1;
+    double score = 2;
+    int32 shard_id = 3;
+    int64 version = 4;
+    string snippet = 5;
+}
+
+message LocalSearchResponse {
+    repeated LocalSearchResultItem results = 1;
+    int64 local_hits = 2;
+    string error_code = 3;
+    string error_message = 4;
+}
+
+message ShardStatusRequest {}
+
+message ShardStatusResponse {
+    int32 shard_id = 1;
+    string role = 2;
+    int64 latest_sequence = 3;
+    int64 total_documents = 4;
+    bool is_healthy = 5;
+}
+
+message LatestSequenceRequest {}
+
+message LatestSequenceResponse {
+    int32 shard_id = 1;
+    int64 latest_sequence = 2;
+    int64 oldest_sequence = 3;
+}
+
+message GetUpdatesAfterRequest {
+    int64 since_sequence = 1;
+    int32 max_events = 2;
+}
+
+message ProtoUpdateEvent {
+    int32 shard_id = 1;
+    int64 sequence_number = 2;
+    string doc_id = 3;
+    string operation = 4; // "INSERT", "REPLACE", "DELETE"
+    int64 version = 5;
+    string payload = 6;
+    double committed_at = 7;
+}
+
+message GetUpdatesAfterResponse {
+    repeated ProtoUpdateEvent events = 1;
+    bool has_more = 2;
+    string error_code = 3;
+    string error_message = 4;
+}

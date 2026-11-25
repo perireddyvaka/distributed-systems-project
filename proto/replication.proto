@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package replication;
+
+import "shard.proto";
+
+// ReplicaService is exposed by each Replica Shard for update replication and recovery management.
+service ReplicaService {
+    rpc ApplyUpdate(shard.ProtoUpdateEvent) returns (ApplyUpdateResponse);
+    rpc ApplyBatchUpdates(ApplyBatchRequest) returns (ApplyBatchResponse);
+    rpc GetReplicaCheckpoint(ReplicaCheckpointRequest) returns (ReplicaCheckpointResponse);
+    rpc SetReplicaStatus(SetReplicaStatusRequest) returns (SetReplicaStatusResponse);
+}
+
+message ApplyUpdateResponse {
+    bool success = 1;
+    int32 shard_id = 2;
+    int64 applied_sequence = 3;
+    bool is_duplicate = 4;
+    string error_code = 5;
+    string error_message = 6;
+}
+
+message ApplyBatchRequest {
+    repeated shard.ProtoUpdateEvent events = 1;
+}
+
+message ApplyBatchResponse {
+    bool success = 1;
+    int32 shard_id = 2;
+    int64 last_applied_sequence = 3;
+    int32 events_applied = 4;
+    string error_code = 5;
+    string error_message = 6;
+}
+
+message ReplicaCheckpointRequest {
+    int32 shard_id = 1;
+}
+
+message ReplicaCheckpointResponse {
+    int32 shard_id = 1;
+    string replica_id = 2;
+    int64 last_applied_sequence = 3;
+    string status = 4; // "DISCONNECTED", "CONNECTING", "RECOVERING", "SYNCHRONIZED", "FAILED", "HISTORY_UNAVAILABLE"
+    int64 total_documents = 5;
+}
+
+message SetReplicaStatusRequest {
+    int32 shard_id = 1;
+    string status = 2;
+}
+
+message SetReplicaStatusResponse {
+    bool success = 1;
+    string current_status = 2;
+}

@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package coordinator;
+
+// CoordinatorService is exposed by the Coordinator to Clients.
+service CoordinatorService {
+    rpc InsertDocument(InsertRequest) returns (MutationResponse);
+    rpc ReplaceDocument(ReplaceRequest) returns (MutationResponse);
+    rpc DeleteDocument(DeleteRequest) returns (MutationResponse);
+    rpc Search(SearchRequest) returns (SearchResponse);
+    rpc GetClusterStatus(ClusterStatusRequest) returns (ClusterStatusResponse);
+    rpc TriggerRecovery(RecoveryRequest) returns (RecoveryResponse);
+}
+
+message InsertRequest {
+    string doc_id = 1;
+    string content = 2;
+}
+
+message ReplaceRequest {
+    string doc_id = 1;
+    string content = 2;
+    int64 expected_version = 3;
+}
+
+message DeleteRequest {
+    string doc_id = 1;
+    int64 expected_version = 2;
+}
+
+message MutationResponse {
+    bool success = 1;
+    int32 shard_id = 2;
+    int64 sequence_number = 3;
+    int64 version = 4;
+    string error_code = 5;
+    string error_message = 6;
+}
+
+message SearchRequest {
+    string query = 1;
+    int32 top_k = 2;
+}
+
+message SearchResultItem {
+    string doc_id = 1;
+    double score = 2;
+    int32 shard_id = 3;
+    int64 version = 4;
+    string snippet = 5;
+}
+
+message SearchResponse {
+    repeated SearchResultItem results = 1;
+    int64 total_hits = 2;
+    double execution_time_ms = 3;
+    string error_code = 4;
+    string error_message = 5;
+}
+
+message ClusterStatusRequest {}
+
+message ShardInfo {
+    int32 shard_id = 1;
+    string primary_address = 2;
+    string replica_address = 3;
+    int64 latest_sequence = 4;
+    int64 replica_applied_sequence = 5;
+    int64 replication_lag = 6;
+    string replica_status = 7;
+    bool is_primary_alive = 8;
+    bool is_replica_alive = 9;
+    int64 total_documents = 10;
+}
+
+message ClusterStatusResponse {
+    repeated ShardInfo shards = 1;
+    int64 total_cluster_documents = 2;
+    bool is_healthy = 3;
+}
+
+message RecoveryRequest {
+    int32 shard_id = 1;
+}
+
+message RecoveryResponse {
+    bool success = 1;
+    int32 shard_id = 2;
+    string status = 3;
+    int64 replayed_events = 4;
+    string error_message = 5;
+}
