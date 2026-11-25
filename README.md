@@ -1,7 +1,7 @@
 # Distributed Search Engine with Incremental Index Recovery
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-M5%20Replication%20Validated-green.svg)](docs/DEVELOPMENT_TRACKER.md)
+[![Status](https://img.shields.io/badge/status-M6%20Recovery%20Validated-green.svg)](docs/DEVELOPMENT_TRACKER.md)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 
 ---
@@ -46,7 +46,7 @@ This project implements a complete, self-contained distributed search engine wri
 | Persistence | Repositories & WAL Mode | **Implemented** | SQLite WAL mode, atomic BEGIN IMMEDIATE, index reconstruction on boot |
 | Sharding | Coordinator Scatter-Gather | **Implemented** | Stable MD5 routing, two-phase scatter-gather with global snapshot, Top-K merger |
 | Replication | Sequence Logger & Applier | **Implemented** | Monotonic sequence allocation, streaming gRPC replication, deduplication, gap detection, durable checkpointing |
-| Recovery | Incremental Recovery Mgr | Planned (M6) | Sequence-range replay $[S_{repl}+1, S_{prim}]$ |
+| Recovery | Incremental Recovery Mgr | **Implemented** | Sequence-range replay $[S_{\text{repl}}+1, S_{\text{prim}}]$, resumption after interruption, HISTORY_UNAVAILABLE detection |
 | Verification | Independent Reference Engine | Planned (M7) | Standalone un-sharded verification |
 | Evaluation | WikiText Benchmarking | Planned (M8) | Recovery speedup & search latency plots |
 | Deployment | Docker Compose Cluster | Planned (M9) | Multi-container sharded deployment |

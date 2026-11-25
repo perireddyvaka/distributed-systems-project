@@ -6,8 +6,8 @@
 - **Project Objective:** Implement an Elasticsearch-inspired distributed text search engine using custom sharded inverted indexes, primary-replica replication, persistent SQLite update logs, and incremental recovery by replaying missed sequence updates.
 - **Repository Location:** `/Users/perireddyvaka/IIITH/MS/Monsoon-26/DS/assignments/project`
 - **Current Version:** `0.1.0`
-- **Current Milestone:** `M6 — Incremental replica recovery`
-- **Overall Progress:** 65%
+- **Current Milestone:** `M7 — Independent reference engine and correctness validation`
+- **Overall Progress:** 75%
 - **Last Updated Date:** 2026-11-25
 - **Current Project Status:** IN PROGRESS
 
@@ -34,8 +34,8 @@
 | M3 | SQLite persistence | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 unit tests passed (test_storage.py) |
 | M4 | Sharding and coordinator | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 tests passed (3 unit, 4 integration) |
 | M5 | Primary-replica replication | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 8 replication tests passed (test_replication.py) |
-| M6 | Incremental replica recovery | NOT STARTED | 0% | — | — | — |
-| M6 | Incremental replica recovery | NOT STARTED | 0% | — | — | — |
+| M6 | Incremental replica recovery | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 4 recovery tests passed (test_recovery.py) |
+| M7 | Independent reference engine and correctness validation | NOT STARTED | 0% | — | — | — |
 | M7 | Independent reference engine and correctness validation | NOT STARTED | 0% | — | — | — |
 | M8 | Performance and recovery evaluation | NOT STARTED | 0% | — | — | — |
 | M9 | Docker deployment and final submission readiness | NOT STARTED | 0% | — | — | — |
@@ -105,6 +105,15 @@
 | M5-007 | Implement ReplicaService gRPC server and ReplicaClient | Primary Dev | VALIDATED | M5-002 | `services/replica_server.py`, `services/replica_client.py` | `test_live_grpc_replication` | Passed (TE-006) | gRPC endpoints for ApplyUpdate & Checkpoint |
 | M5-008 | Implement ReplicationManager for primary-to-replica streaming and lag tracking | Primary Dev | VALIDATED | M5-007 | `replication/replication_manager.py` | `test_live_grpc_replication` | Passed (TE-006) | Uninterrupted primary writes & lag tracking |
 
+### Milestone M6: Incremental Replica Recovery
+| Task ID | Task Description | Owner | Status | Dependencies | Files/Modules | Test IDs | Evidence | Notes |
+|---|---|---|---|---|---|---|---|---|
+| M6-001 | Implement missing sequence range calculation | Primary Dev | VALIDATED | M5 | `replication/recovery_manager.py` | `test_recovery.py` | 4 passed (TE-007) | Range [S_checkpoint + 1, S_latest] |
+| M6-002 | Implement incremental recovery replay loop with batch streaming | Primary Dev | VALIDATED | M6-001 | `replication/recovery_manager.py` | `test_incremental_recovery_basic` | Passed (TE-007) | Replay missed range without full rebuild |
+| M6-003 | Implement interrupted recovery resumption from durable checkpoint | Primary Dev | VALIDATED | M6-002 | `replication/recovery_manager.py` | `test_interrupted_recovery_resumption` | Passed (TE-007) | Resume from persisted checkpoint sequence |
+| M6-004 | Implement HISTORY_UNAVAILABLE detection for pruned log history | Primary Dev | VALIDATED | M6-002 | `replication/recovery_manager.py` | `test_history_unavailable_error` | Passed (TE-007) | Explicit failure on missing sequence log |
+| M6-005 | Incremental recovery test suite | Primary Dev | VALIDATED | M6-001..004 | `tests/recovery/test_recovery.py` | `pytest tests/recovery/` | 4 passed (TE-007) | Verified catch-up, interruption, pruned logs |
+
 ---
 
 ## E. Test Evidence Table
@@ -117,6 +126,7 @@
 | TE-004 | `./.venv/bin/pytest tests/unit/test_storage.py` | PASSED | 7 | 0 | 2026-11-25 | Verified WAL mode, document repo, index repo, log repo, checkpoints, atomic rollback, and process restart reconstruction |
 | TE-005 | `./.venv/bin/pytest tests/unit/test_router.py tests/integration/test_sharded_search.py` | PASSED | 7 | 0 | 2026-11-25 | Verified deterministic router uniformity, 2-shard cluster routing, CRUD, scatter-gather search, and tie-breaking |
 | TE-006 | `./.venv/bin/pytest tests/replication/test_replication.py` | PASSED | 8 | 0 | 2026-11-25 | Verified sequence monotonicity, replica in-order apply, duplicate handling, gap detection, stale version rejection, anti-resurrection, restart checkpointing, and live gRPC streaming |
+| TE-007 | `./.venv/bin/pytest tests/recovery/test_recovery.py` | PASSED | 4 | 0 | 2026-11-25 | Verified incremental recovery range replay, interrupted resumption, history unavailable detection, and synchronization |
 
 ---
 
