@@ -6,8 +6,8 @@
 - **Project Objective:** Implement an Elasticsearch-inspired distributed text search engine using custom sharded inverted indexes, primary-replica replication, persistent SQLite update logs, and incremental recovery by replaying missed sequence updates.
 - **Repository Location:** `/Users/perireddyvaka/IIITH/MS/Monsoon-26/DS/assignments/project`
 - **Current Version:** `0.1.0`
-- **Current Milestone:** `M4 — Sharding and coordinator`
-- **Overall Progress:** 45%
+- **Current Milestone:** `M5 — Primary-replica replication`
+- **Overall Progress:** 55%
 - **Last Updated Date:** 2026-11-25
 - **Current Project Status:** IN PROGRESS
 
@@ -32,7 +32,8 @@
 | M1 | Text processing and custom inverted index | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 18 unit tests passed (tokenizer, index, doc mgr) |
 | M2 | BM25 ranking | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 8 unit tests passed (test_bm25.py) |
 | M3 | SQLite persistence | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 unit tests passed (test_storage.py) |
-| M4 | Sharding and coordinator | NOT STARTED | 0% | — | — | — |
+| M4 | Sharding and coordinator | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 tests passed (3 unit, 4 integration) |
+| M5 | Primary-replica replication | NOT STARTED | 0% | — | — | — |
 | M5 | Primary-replica replication | NOT STARTED | 0% | — | — | — |
 | M6 | Incremental replica recovery | NOT STARTED | 0% | — | — | — |
 | M7 | Independent reference engine and correctness validation | NOT STARTED | 0% | — | — | — |
@@ -80,6 +81,18 @@
 | M3-004 | Implement atomic primary mutation and replica apply boundaries | Primary Dev | VALIDATED | M3-002, M3-003 | `storage/shard_store.py` | `test_atomic_primary_mutation_rollback` | Passed (TE-004) | BEGIN IMMEDIATE single transaction |
 | M3-005 | Process crash simulation and index reconstruction from database | Primary Dev | VALIDATED | M3-004 | `storage/shard_store.py` | `test_restart_and_index_reconstruction` | Passed (TE-004) | Complete in-memory reconstruction & BM25 search |
 
+### Milestone M4: Sharding and Coordinator
+| Task ID | Task Description | Owner | Status | Dependencies | Files/Modules | Test IDs | Evidence | Notes |
+|---|---|---|---|---|---|---|---|---|
+| M4-001 | Implement deterministic document routing (MD5 % N) | Primary Dev | VALIDATED | M0 | `coordinator/router.py` | `test_router.py` | 3 passed (TE-005) | Uniform stable hash modulo |
+| M4-002 | Implement shard registry and client wrapper | Primary Dev | VALIDATED | M0 | `coordinator/shard_registry.py`, `services/shard_client.py` | `test_sharded_search.py` | Passed (TE-005) | Primary client management & health |
+| M4-003 | Implement Primary Shard gRPC service | Primary Dev | VALIDATED | M1, M2, M3 | `services/shard_server.py` | `test_sharded_search.py` | Passed (TE-005) | Shard RPC handler for CRUD & search |
+| M4-004 | Implement Global Ranking Stats aggregator | Primary Dev | VALIDATED | M4-003 | `coordinator/ranking_stats.py` | `test_sharded_search.py` | Passed (TE-005) | Parallel stats collection across shards |
+| M4-005 | Implement ResultMerger with deterministic tie-breaking | Primary Dev | VALIDATED | M4-004 | `coordinator/result_merger.py` | `test_sharded_search.py` | Passed (TE-005) | Score DESC, doc_id ASC tie-break |
+| M4-006 | Implement QueryDispatcher for two-phase scatter-gather | Primary Dev | VALIDATED | M4-005 | `coordinator/query_dispatcher.py` | `test_sharded_search.py` | Passed (TE-005) | Scatter-gather query orchestration |
+| M4-007 | Implement Coordinator gRPC server | Primary Dev | VALIDATED | M4-006 | `coordinator/server.py` | `test_sharded_search.py` | Passed (TE-005) | Client CRUD & search gateway |
+| M4-008 | Multi-primary integration test suite (2-shard cluster) | Primary Dev | VALIDATED | M4-007 | `tests/integration/test_sharded_search.py` | `test_sharded_search.py` | 4 passed (TE-005) | Routing, CRUD, scatter-gather, tie-break |
+
 ---
 
 ## E. Test Evidence Table
@@ -90,6 +103,7 @@
 | TE-002 | `./.venv/bin/pytest tests/unit/` | PASSED | 25 | 0 | 2026-11-25 | Verified tokenizer, inverted index, document manager CRUD, versions, tombstones, and anti-resurrection |
 | TE-003 | `./.venv/bin/pytest tests/unit/test_bm25.py` | PASSED | 8 | 0 | 2026-11-25 | Verified BM25 hand-calculated IDF and scores, multi-term, tie-breaking, length normalization, global stats |
 | TE-004 | `./.venv/bin/pytest tests/unit/test_storage.py` | PASSED | 7 | 0 | 2026-11-25 | Verified WAL mode, document repo, index repo, log repo, checkpoints, atomic rollback, and process restart reconstruction |
+| TE-005 | `./.venv/bin/pytest tests/unit/test_router.py tests/integration/test_sharded_search.py` | PASSED | 7 | 0 | 2026-11-25 | Verified deterministic router uniformity, 2-shard cluster routing, CRUD, scatter-gather search, and tie-breaking |
 
 ---
 

@@ -132,6 +132,9 @@ class ShardStatus:
     latest_sequence: int = 0
     total_documents: int = 0
     is_healthy: bool = True
+    is_primary_alive: bool = True
+    is_replica_alive: bool = False
+    doc_count: int = 0
     primary_address: Optional[str] = None
     replica_address: Optional[str] = None
     replication_lag: Optional[int] = 0
