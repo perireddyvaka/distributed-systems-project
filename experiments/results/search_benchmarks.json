@@ -1,0 +1,128 @@
+{
+  "1_shards": {
+    "top_5": {
+      "num_shards": 1,
+      "top_k": 5,
+      "total_queries": 200,
+      "qps": 1224.98,
+      "mean_latency_ms": 0.816,
+      "p50_latency_ms": 0.694,
+      "p95_latency_ms": 1.646,
+      "p99_latency_ms": 3.745
+    },
+    "top_10": {
+      "num_shards": 1,
+      "top_k": 10,
+      "total_queries": 200,
+      "qps": 1113.61,
+      "mean_latency_ms": 0.898,
+      "p50_latency_ms": 0.76,
+      "p95_latency_ms": 1.689,
+      "p99_latency_ms": 3.091
+    },
+    "top_20": {
+      "num_shards": 1,
+      "top_k": 20,
+      "total_queries": 200,
+      "qps": 1187.29,
+      "mean_latency_ms": 0.842,
+      "p50_latency_ms": 0.744,
+      "p95_latency_ms": 1.308,
+      "p99_latency_ms": 2.553
+    },
+    "top_50": {
+      "num_shards": 1,
+      "top_k": 50,
+      "total_queries": 200,
+      "qps": 1225.79,
+      "mean_latency_ms": 0.816,
+      "p50_latency_ms": 0.749,
+      "p95_latency_ms": 1.434,
+      "p99_latency_ms": 1.697
+    }
+  },
+  "2_shards": {
+    "top_5": {
+      "num_shards": 2,
+      "top_k": 5,
+      "total_queries": 200,
+      "qps": 1015.63,
+      "mean_latency_ms": 0.984,
+      "p50_latency_ms": 0.938,
+      "p95_latency_ms": 1.333,
+      "p99_latency_ms": 2.879
+    },
+    "top_10": {
+      "num_shards": 2,
+      "top_k": 10,
+      "total_queries": 200,
+      "qps": 963.71,
+      "mean_latency_ms": 1.037,
+      "p50_latency_ms": 0.98,
+      "p95_latency_ms": 1.408,
+      "p99_latency_ms": 2.164
+    },
+    "top_20": {
+      "num_shards": 2,
+      "top_k": 20,
+      "total_queries": 200,
+      "qps": 960.12,
+      "mean_latency_ms": 1.041,
+      "p50_latency_ms": 0.995,
+      "p95_latency_ms": 1.473,
+      "p99_latency_ms": 2.12
+    },
+    "top_50": {
+      "num_shards": 2,
+      "top_k": 50,
+      "total_queries": 200,
+      "qps": 960.73,
+      "mean_latency_ms": 1.041,
+      "p50_latency_ms": 1.006,
+      "p95_latency_ms": 1.485,
+      "p99_latency_ms": 1.791
+    }
+  },
+  "4_shards": {
+    "top_5": {
+      "num_shards": 4,
+      "top_k": 5,
+      "total_queries": 200,
+      "qps": 534.76,
+      "mean_latency_ms": 1.87,
+      "p50_latency_ms": 1.748,
+      "p95_latency_ms": 2.66,
+      "p99_latency_ms": 3.748
+    },
+    "top_10": {
+      "num_shards": 4,
+      "top_k": 10,
+      "total_queries": 200,
+      "qps": 587.04,
+      "mean_latency_ms": 1.703,
+      "p50_latency_ms": 1.676,
+      "p95_latency_ms": 1.998,
+      "p99_latency_ms": 2.274
+    },
+    "top_20": {
+      "num_shards": 4,
+      "top_k": 20,
+      "total_queries": 200,
+      "qps": 574.03,
+      "mean_latency_ms": 1.742,
+      "p50_latency_ms": 1.673,
+      "p95_latency_ms": 2.106,
+      "p99_latency_ms": 3.171
+    },
+    "top_50": {
+      "num_shards": 4,
+      "top_k": 50,
+      "total_queries": 200,
+      "qps": 558.58,
+      "mean_latency_ms": 1.79,
+      "p50_latency_ms": 1.732,
+      "p95_latency_ms": 2.282,
+      "p99_latency_ms": 3.196
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "benchmarks": [
+    {
+      "missed_updates": 10,
+      "total_documents": 250,
+      "t_incremental_sec": 0.0066,
+      "t_full_rebuild_sec": 0.1077,
+      "speedup_ratio": 16.28,
+      "bytes_incremental": 6259,
+      "bytes_full_snapshot": 160475,
+      "data_reduction_pct": 96.1,
+      "verified_converged": true
+    },
+    {
+      "missed_updates": 25,
+      "total_documents": 250,
+      "t_incremental_sec": 0.0136,
+      "t_full_rebuild_sec": 0.1042,
+      "speedup_ratio": 7.68,
+      "bytes_incremental": 15241,
+      "bytes_full_snapshot": 160475,
+      "data_reduction_pct": 90.5,
+      "verified_converged": true
+    },
+    {
+      "missed_updates": 50,
+      "total_documents": 250,
+      "t_incremental_sec": 0.0272,
+      "t_full_rebuild_sec": 0.1058,
+      "speedup_ratio": 3.89,
+      "bytes_incremental": 31295,
+      "bytes_full_snapshot": 160475,
+      "data_reduction_pct": 80.5,
+      "verified_converged": true
+    },
+    {
+      "missed_updates": 100,
+      "total_documents": 250,
+      "t_incremental_sec": 0.0548,
+      "t_full_rebuild_sec": 0.1107,
+      "speedup_ratio": 2.02,
+      "bytes_incremental": 62590,
+      "bytes_full_snapshot": 160475,
+      "data_reduction_pct": 61.0,
+      "verified_converged": true
+    },
+    {
+      "missed_updates": 150,
+      "total_documents": 250,
+      "t_incremental_sec": 0.075,
+      "t_full_rebuild_sec": 0.1039,
+      "speedup_ratio": 1.39,
+      "bytes_incremental": 93885,
+      "bytes_full_snapshot": 160475,
+      "data_reduction_pct": 41.5,
+      "verified_converged": true
+    },
+    {
+      "missed_updates": 200,
+      "total_documents": 250,
+      "t_incremental_sec": 0.0874,
+      "t_full_rebuild_sec": 0.1068,
+      "speedup_ratio": 1.22,
+      "bytes_incremental": 125180,
+      "bytes_full_snapshot": 160475,
+      "data_reduction_pct": 21.99,
+      "verified_converged": true
+    }
+  ]
+}

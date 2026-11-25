@@ -188,3 +188,52 @@ This document records the foundational and continuing architectural design decis
   - `tests/system/test_cross_validation.py`
 - **Related Tests:**
   - `tests/system/test_cross_validation.py`
+
+---
+
+## ADR-008: Dataset Pipeline with Offline Fallback and Zero-Network Test Fixtures
+
+- **Date:** 2026-11-25
+- **Context:**
+  TAs and grading scripts may execute in restricted network sandboxes or air-gapped environments where external web requests to GitHub/HuggingFace fail. The dataset pipeline must never block or crash due to network unavailability.
+- **Decision:**
+  Implement a dual-mode dataset pipeline:
+  1. `download_dataset.py` attempts to fetch real WikiText-2 raw articles from public repositories; upon any socket or DNS failure, it automatically falls back to generating a rich, deterministic 500-article corpus covering computer systems, information retrieval, networking, and algorithms.
+  2. `prepare_dataset.py` creates both the processed corpus (`datasets/processed/wikitext_corpus.jsonl`) and an immutable test fixture (`tests/fixtures/sample_corpus.jsonl`).
+- **Alternatives Considered:**
+  1. *Hard-failing when offline*: Prevents grading in sandboxed environments.
+  2. *Only tiny hardcoded mock fixtures*: Inadequate for measuring search QPS scaling or recovery speedup benchmarks.
+- **Reason for Selection:**
+  Ensures 100% reproducible benchmarking and grading execution under all network conditions.
+- **Affected Modules:**
+  - `scripts/download_dataset.py`
+  - `scripts/prepare_dataset.py`
+  - `scripts/validate_dataset.py`
+  - `tests/fixtures/sample_corpus.jsonl`
+- **Related Tests:**
+  - `scripts/validate_dataset.py`
+  - `tests/system/test_cross_validation.py`
+
+---
+
+## ADR-009: Microservice Containerization with Independent Durable Volumes
+
+- **Date:** 2026-11-25
+- **Context:**
+  The distributed search engine must be easily deployed, inspected, and evaluated using Docker and Docker Compose without requiring manual multi-terminal process management. Each primary and replica shard must retain independent durability across container restarts.
+- **Decision:**
+  Create isolated container microservices orchestrated via `docker-compose.yml`:
+  1. `search-coordinator`: Serves client gRPC requests on port `50050`.
+  2. `shard0-primary` (50051) & `shard0-replica` (50061).
+  3. `shard1-primary` (50052) & `shard1-replica` (50062).
+  4. Mount dedicated named Docker volumes (`shard{i}_{role}_data`) to `/data` so SQLite databases, write-ahead logs, and monotonic sequence metadata persist independently across container lifecycle events.
+- **Alternatives Considered:**
+  1. *Single monolithic container running all processes via supervisor*: Obscures distributed boundary and makes network isolation/failure testing difficult.
+  2. *Kubernetes*: Explicitly ruled out by project scope ("Do not spend time implementing Kubernetes deployment").
+- **Reason for Selection:**
+  Matches standard industry microservice architecture, fulfills Docker Compose assignment requirement, and enables realistic failure simulations.
+- **Affected Modules:**
+  - `Dockerfile`
+  - `docker-compose.yml`
+  - `services/entrypoint_shard.py`
+  - `services/entrypoint_coordinator.py`

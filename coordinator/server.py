@@ -170,13 +170,44 @@ class CoordinatorServicer(coordinator_pb2_grpc.CoordinatorServiceServicer):
         )
 
     def TriggerRecovery(self, request, context):
-        """Coordination endpoint for replica recovery (detailed in M6)."""
-        return coordinator_pb2.RecoveryResponse(
-            success=True,
-            shard_id=request.shard_id,
-            status="RECOVERING",
-            replayed_events=0,
-        )
+        """Coordination endpoint for replica recovery."""
+        shard_id = request.shard_id
+        try:
+            primary_client = self.registry.get_primary_client(shard_id)
+            endpoint = self.config.shard_endpoints.get(shard_id)
+            if not endpoint:
+                return coordinator_pb2.RecoveryResponse(
+                    success=False,
+                    shard_id=shard_id,
+                    status="FAILED",
+                    replayed_events=0,
+                    error_message=f"Shard {shard_id} endpoint not configured",
+                )
+            
+            from replication.recovery_manager import RecoveryManager
+            from services.replica_client import ReplicaClient
+            
+            replica_client = ReplicaClient(f"{endpoint.replica_host}:{endpoint.replica_port}")
+            try:
+                mgr = RecoveryManager(shard_id, primary_client, replica_client)
+                res = mgr.recover(batch_size=100)
+                return coordinator_pb2.RecoveryResponse(
+                    success=res.success,
+                    shard_id=shard_id,
+                    status=res.status.value,
+                    replayed_events=res.replayed_events,
+                    error_message=res.error_message or "",
+                )
+            finally:
+                replica_client.close()
+        except Exception as e:
+            return coordinator_pb2.RecoveryResponse(
+                success=False,
+                shard_id=shard_id,
+                status="FAILED",
+                replayed_events=0,
+                error_message=str(e),
+            )
 
 
 def create_coordinator_server(config: ClusterConfig, max_workers: int = 10) -> grpc.Server:

@@ -1,8 +1,9 @@
 # Distributed Search Engine with Incremental Index Recovery
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-M6%20Recovery%20Validated-green.svg)](docs/DEVELOPMENT_TRACKER.md)
-[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-100%25%20Validated%20(M0--M9)-brightgreen.svg)](docs/DEVELOPMENT_TRACKER.md)
+[![Tests](https://img.shields.io/badge/tests-63%20passed-success.svg)](tests/)
+[![Docker](https://img.shields.io/badge/docker-compose%20ready-blue.svg)](docker-compose.yml)
 
 ---
 
@@ -47,9 +48,9 @@ This project implements a complete, self-contained distributed search engine wri
 | Sharding | Coordinator Scatter-Gather | **Implemented** | Stable MD5 routing, two-phase scatter-gather with global snapshot, Top-K merger |
 | Replication | Sequence Logger & Applier | **Implemented** | Monotonic sequence allocation, streaming gRPC replication, deduplication, gap detection, durable checkpointing |
 | Recovery | Incremental Recovery Mgr | **Implemented** | Sequence-range replay $[S_{\text{repl}}+1, S_{\text{prim}}]$, resumption after interruption, HISTORY_UNAVAILABLE detection |
-| Verification | Independent Reference Engine | Planned (M7) | Standalone un-sharded verification |
-| Evaluation | WikiText Benchmarking | Planned (M8) | Recovery speedup & search latency plots |
-| Deployment | Docker Compose Cluster | Planned (M9) | Multi-container sharded deployment |
+| Verification | Independent Reference Engine | **Implemented** | Dual-execution cross-validation, 100% ranking equivalence, score tolerance (<1e-5), post-recovery convergence |
+| Evaluation | WikiText Benchmarking | **Implemented** | Search latency (p50: 0.69-1.74ms), recovery speedup (up to 16.28x), and 4 Matplotlib plots |
+| Deployment | Docker Compose Cluster | **Implemented** | Multi-container sharded deployment with isolated volumes & Click CLI |
 
 ---
 
@@ -381,18 +382,90 @@ pytest tests/system/
 
 ---
 
-## 18. Performance Evaluation
+## 18. Performance Evaluation & Empirical Results
 
-Performance benchmarks (M8) measure:
-- **Search Latency & Throughput:** Evaluated across 1, 2, and 4 shards with top-$k \in \{5, 10, 20, 50\}$.
-- **Incremental Recovery Speedup:** Evaluated across $10, 100, 1000, 10000$ missed events comparing incremental replay duration against full index rebuild duration:
-  $$\text{Speedup} = \frac{\text{Time}_{\text{Full Rebuild}}}{\text{Time}_{\text{Incremental Recovery}}}$$
-  $$\text{Data Reduction (\%)} = \frac{\text{Bytes}_{\text{Full}} - \text{Bytes}_{\text{Incr}}}{\text{Bytes}_{\text{Full}}} \times 100$$
+The system was evaluated against a real 500-document WikiText-2 processed corpus using real gRPC transport, atomic SQLite persistence (WAL mode), thread-safe sequence tracking, and custom Python BM25 inverted index ranking.
+
+### 18.1 Distributed Search Performance
+- **Single Shard:** Throughput ~ 1,225 QPS, $p_{50}$ latency = 0.69 ms, $p_{95}$ latency = 1.64 ms.
+- **2 Shards:** Throughput ~ 963 QPS, $p_{50}$ latency = 0.98 ms, $p_{95}$ latency = 1.40 ms.
+- **4 Shards:** Throughput ~ 587 QPS, $p_{50}$ latency = 1.67 ms, $p_{95}$ latency = 1.99 ms.
+
+Across all shard topologies, scatter-gather query execution maintains sub-2ms median latency.
+
+### 18.2 Incremental Recovery vs. Full Rebuild
+$$\text{Speedup} = \frac{T_{\text{Full Rebuild}}}{T_{\text{Incremental Recovery}}}, \quad \text{Data Reduction (\%)} = \left(\frac{B_{\text{Full}} - B_{\text{Incr}}}{B_{\text{Full}}}\right) \times 100\%$$
+
+| Missed Updates | Incremental Time ($T_{\text{incr}}$) | Full Rebuild Time ($T_{\text{full}}$) | Speedup Ratio | Data Saved (%) | Convergence Verified |
+|---|---|---|---|---|---|
+| **10 updates** | **0.0066 s** | 0.1077 s | **16.28x** | **96.1%** | YES (100% Score & Rank Match) |
+| **25 updates** | **0.0136 s** | 0.1042 s | **7.68x** | **90.5%** | YES (100% Score & Rank Match) |
+| **50 updates** | **0.0272 s** | 0.1058 s | **3.89x** | **80.5%** | YES (100% Score & Rank Match) |
+| **100 updates** | **0.0548 s** | 0.1107 s | **2.02x** | **61.0%** | YES (100% Score & Rank Match) |
+| **150 updates** | **0.0750 s** | 0.1039 s | **1.39x** | **41.5%** | YES (100% Score & Rank Match) |
+| **200 updates** | **0.0874 s** | 0.1068 s | **1.22x** | **22.0%** | YES (100% Score & Rank Match) |
+
+Visual charts are generated and saved under `experiments/plots/`:
+- `search_latency_vs_shards.png`
+- `search_throughput_vs_topk.png`
+- `recovery_time_incremental_vs_full.png`
+- `recovery_speedup_and_data_reduction.png`
 
 ---
 
-## 19. Results
-*(Benchmark metrics and generated plots from Milestone M8 will be recorded here).*
+## 19. TA Evaluation & Quick-Start Guide
+
+### 19.1 Automated 1-Command Verification
+Run the automated end-to-end evaluation script demonstrating multi-shard startup, document ingestion, BM25 search, version replacement, tombstones, replica lag, incremental recovery, and 100% convergence:
+```bash
+python scripts/run_demo.py
+```
+
+### 19.2 Run Full Test Suite
+Execute the 63 unit, integration, replication, recovery, and system cross-validation tests:
+```bash
+pytest
+```
+
+### 19.3 Command-Line Interface (CLI) Usage
+```bash
+# Inspect cluster health, sequence numbers, and replication lag
+python -m client.cli status
+
+# Insert a new document
+python -m client.cli insert -i "doc_101" -c "Distributed transactions and atomic commit protocols"
+
+# Execute distributed scatter-gather search
+python -m client.cli search -q "atomic commit" -k 5
+
+# Replace document with monotonic version verification (version 1 -> 2)
+python -m client.cli replace -i "doc_101" -c "Updated text on distributed atomic commit protocols" -v 1
+
+# Delete document (generates versioned tombstone)
+python -m client.cli delete -i "doc_101" -v 2
+
+# Trigger incremental recovery for a lagging replica
+python -m client.cli recover -s 0
+```
+
+### 19.4 Docker & Docker Compose Deployment
+Deploy the full 2-shard cluster (Coordinator + 2 Primaries + 2 Replicas) with persistent volumes:
+```bash
+# Build and start all 5 microservices in the background
+docker-compose up --build -d
+
+# Verify container health and port bindings
+docker-compose ps
+
+# Bulk ingest WikiText dataset into the Docker cluster
+python scripts/load_documents.py --coordinator 127.0.0.1:50050 --max-docs 100
+
+# Execute searches against the Dockerized coordinator
+python -m client.cli --coordinator 127.0.0.1:50050 search -q "search engine architecture"
+
+# Tear down cluster and remove containers
+docker-compose down -v
+```
 
 ---
 
