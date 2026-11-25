@@ -6,8 +6,8 @@
 - **Project Objective:** Implement an Elasticsearch-inspired distributed text search engine using custom sharded inverted indexes, primary-replica replication, persistent SQLite update logs, and incremental recovery by replaying missed sequence updates.
 - **Repository Location:** `/Users/perireddyvaka/IIITH/MS/Monsoon-26/DS/assignments/project`
 - **Current Version:** `0.1.0`
-- **Current Milestone:** `M5 — Primary-replica replication`
-- **Overall Progress:** 55%
+- **Current Milestone:** `M6 — Incremental replica recovery`
+- **Overall Progress:** 65%
 - **Last Updated Date:** 2026-11-25
 - **Current Project Status:** IN PROGRESS
 
@@ -33,8 +33,8 @@
 | M2 | BM25 ranking | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 8 unit tests passed (test_bm25.py) |
 | M3 | SQLite persistence | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 unit tests passed (test_storage.py) |
 | M4 | Sharding and coordinator | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 tests passed (3 unit, 4 integration) |
-| M5 | Primary-replica replication | NOT STARTED | 0% | — | — | — |
-| M5 | Primary-replica replication | NOT STARTED | 0% | — | — | — |
+| M5 | Primary-replica replication | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 8 replication tests passed (test_replication.py) |
+| M6 | Incremental replica recovery | NOT STARTED | 0% | — | — | — |
 | M6 | Incremental replica recovery | NOT STARTED | 0% | — | — | — |
 | M7 | Independent reference engine and correctness validation | NOT STARTED | 0% | — | — | — |
 | M8 | Performance and recovery evaluation | NOT STARTED | 0% | — | — | — |
@@ -93,6 +93,18 @@
 | M4-007 | Implement Coordinator gRPC server | Primary Dev | VALIDATED | M4-006 | `coordinator/server.py` | `test_sharded_search.py` | Passed (TE-005) | Client CRUD & search gateway |
 | M4-008 | Multi-primary integration test suite (2-shard cluster) | Primary Dev | VALIDATED | M4-007 | `tests/integration/test_sharded_search.py` | `test_sharded_search.py` | 4 passed (TE-005) | Routing, CRUD, scatter-gather, tie-break |
 
+### Milestone M5: Primary-Replica Replication
+| Task ID | Task Description | Owner | Status | Dependencies | Files/Modules | Test IDs | Evidence | Notes |
+|---|---|---|---|---|---|---|---|---|
+| M5-001 | Implement SequenceManager for per-shard monotonic sequence numbers | Primary Dev | VALIDATED | M3 | `replication/sequence_manager.py` | `test_sequence_manager_monotonic` | 8 passed (TE-006) | Thread-safe atomic monotonic sequence |
+| M5-002 | Implement ReplicaApplier with in-order sequence enforcement | Primary Dev | VALIDATED | M5-001 | `replication/replica_applier.py` | `test_replica_applier_in_order` | Passed (TE-006) | seq == last_applied + 1 |
+| M5-003 | Implement duplicate event detection and idempotent acknowledgment | Primary Dev | VALIDATED | M5-002 | `replication/replica_applier.py` | `test_replica_duplicate_event_handling` | Passed (TE-006) | seq <= last_applied ignored safely |
+| M5-004 | Implement sequence gap detection and rejection | Primary Dev | VALIDATED | M5-002 | `replication/replica_applier.py` | `test_replica_sequence_gap_detection` | Passed (TE-006) | SequenceGapError on seq > last_applied + 1 |
+| M5-005 | Implement stale version rejection and tombstone anti-resurrection | Primary Dev | VALIDATED | M5-002 | `replication/replica_applier.py` | `test_replica_stale_version_rejection`, `test_replica_tombstone_anti_resurrection` | Passed (TE-006) | StaleVersionError & TombstoneConflictError |
+| M5-006 | Implement durable checkpoint persistence across replica restart | Primary Dev | VALIDATED | M5-002 | `replication/replica_applier.py` | `test_replica_restart_preserves_checkpoint` | Passed (TE-006) | Crash survivability in SQLite |
+| M5-007 | Implement ReplicaService gRPC server and ReplicaClient | Primary Dev | VALIDATED | M5-002 | `services/replica_server.py`, `services/replica_client.py` | `test_live_grpc_replication` | Passed (TE-006) | gRPC endpoints for ApplyUpdate & Checkpoint |
+| M5-008 | Implement ReplicationManager for primary-to-replica streaming and lag tracking | Primary Dev | VALIDATED | M5-007 | `replication/replication_manager.py` | `test_live_grpc_replication` | Passed (TE-006) | Uninterrupted primary writes & lag tracking |
+
 ---
 
 ## E. Test Evidence Table
@@ -104,6 +116,7 @@
 | TE-003 | `./.venv/bin/pytest tests/unit/test_bm25.py` | PASSED | 8 | 0 | 2026-11-25 | Verified BM25 hand-calculated IDF and scores, multi-term, tie-breaking, length normalization, global stats |
 | TE-004 | `./.venv/bin/pytest tests/unit/test_storage.py` | PASSED | 7 | 0 | 2026-11-25 | Verified WAL mode, document repo, index repo, log repo, checkpoints, atomic rollback, and process restart reconstruction |
 | TE-005 | `./.venv/bin/pytest tests/unit/test_router.py tests/integration/test_sharded_search.py` | PASSED | 7 | 0 | 2026-11-25 | Verified deterministic router uniformity, 2-shard cluster routing, CRUD, scatter-gather search, and tie-breaking |
+| TE-006 | `./.venv/bin/pytest tests/replication/test_replication.py` | PASSED | 8 | 0 | 2026-11-25 | Verified sequence monotonicity, replica in-order apply, duplicate handling, gap detection, stale version rejection, anti-resurrection, restart checkpointing, and live gRPC streaming |
 
 ---
 

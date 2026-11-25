@@ -261,7 +261,7 @@ class ShardServicer(shard_pb2_grpc.ShardServiceServicer):
                     operation=e.operation.value if isinstance(e.operation, OperationType) else str(e.operation),
                     version=e.version,
                     payload=e.payload or "",
-                    committed_at=e.committed_at,
+                    committed_at=e.committed_at.timestamp() if hasattr(e.committed_at, "timestamp") else float(e.committed_at or 0.0),
                 )
                 for e in events
             ]
