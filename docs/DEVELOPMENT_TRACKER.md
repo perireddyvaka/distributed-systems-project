@@ -6,8 +6,8 @@
 - **Project Objective:** Implement an Elasticsearch-inspired distributed text search engine using custom sharded inverted indexes, primary-replica replication, persistent SQLite update logs, and incremental recovery by replaying missed sequence updates.
 - **Repository Location:** `/Users/perireddyvaka/IIITH/MS/Monsoon-26/DS/assignments/project`
 - **Current Version:** `0.1.0`
-- **Current Milestone:** `M2 — BM25 ranking`
-- **Overall Progress:** 25%
+- **Current Milestone:** `M3 — SQLite persistence`
+- **Overall Progress:** 35%
 - **Last Updated Date:** 2026-11-25
 - **Current Project Status:** IN PROGRESS
 
@@ -30,7 +30,7 @@
 |---|---|---|---|---|---|---|
 | M0 | Repository inspection and project foundation | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 7 unit tests passed (test_foundation.py) |
 | M1 | Text processing and custom inverted index | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 18 unit tests passed (tokenizer, index, doc mgr) |
-| M2 | BM25 ranking | NOT STARTED | 0% | — | — | — |
+| M2 | BM25 ranking | VALIDATED | 100% | 2026-11-25 | 2026-11-25 | 8 unit tests passed (test_bm25.py) |
 | M3 | SQLite persistence | NOT STARTED | 0% | — | — | — |
 | M4 | Sharding and coordinator | NOT STARTED | 0% | — | — | — |
 | M5 | Primary-replica replication | NOT STARTED | 0% | — | — | — |
@@ -63,6 +63,14 @@
 | M1-003 | Implement document manager with versioning & tombstones | Primary Dev | VALIDATED | M1-002 | `indexing/document_manager.py` | `test_document_manager.py` | 7 passed (TE-002) | Monotonic versions, tombstones, anti-resurrection |
 | M1-004 | CRUD operations unit test suite | Primary Dev | VALIDATED | M1-003 | `tests/unit/test_document_manager.py` | `pytest tests/unit/` | 25 total passed (TE-002) | Insert, replace, delete, tombstone conflict |
 
+### Milestone M2: BM25 Ranking
+| Task ID | Task Description | Owner | Status | Dependencies | Files/Modules | Test IDs | Evidence | Notes |
+|---|---|---|---|---|---|---|---|---|
+| M2-001 | Implement BM25 scoring algorithm | Primary Dev | VALIDATED | M1 | `indexing/bm25.py` | `test_bm25.py` | 8 passed (TE-003) | Okapi BM25 formula with smoothing |
+| M2-002 | Implement global/local corpus statistics structures | Primary Dev | VALIDATED | M2-001 | `indexing/bm25.py` | `test_bm25.py` | Passed (TE-003) | N, avgdl, DF(t) snapshot support |
+| M2-003 | Implement multi-term query scoring & tie-breaking | Primary Dev | VALIDATED | M2-002 | `indexing/bm25.py` | `test_bm25.py` | Passed (TE-003) | Score DESC, doc_id ASC tie-break |
+| M2-004 | Known-answer ranking tests | Primary Dev | VALIDATED | M2-003 | `tests/unit/test_bm25.py` | `test_bm25_idf_hand_calculated` | Passed (TE-003) | Hand-calculated values validated |
+
 ---
 
 ## E. Test Evidence Table
@@ -71,6 +79,7 @@
 |---|---|---|---|---|---|---|
 | TE-001 | `./.venv/bin/pytest tests/unit/test_foundation.py` | PASSED | 7 | 0 | 2026-11-25 | Verified enums, models, search tie-breaking, exceptions, config, schema, and proto serialization |
 | TE-002 | `./.venv/bin/pytest tests/unit/` | PASSED | 25 | 0 | 2026-11-25 | Verified tokenizer, inverted index, document manager CRUD, versions, tombstones, and anti-resurrection |
+| TE-003 | `./.venv/bin/pytest tests/unit/test_bm25.py` | PASSED | 8 | 0 | 2026-11-25 | Verified BM25 hand-calculated IDF and scores, multi-term, tie-breaking, length normalization, global stats |
 
 ---
 

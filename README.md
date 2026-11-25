@@ -1,7 +1,7 @@
 # Distributed Search Engine with Incremental Index Recovery
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-M1%20Indexing%20Validated-green.svg)](docs/DEVELOPMENT_TRACKER.md)
+[![Status](https://img.shields.io/badge/status-M2%20BM25%20Validated-green.svg)](docs/DEVELOPMENT_TRACKER.md)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 
 ---
@@ -42,7 +42,7 @@ This project implements a complete, self-contained distributed search engine wri
 | Protocols | gRPC & Protobuf Contracts | **Implemented** | Coordinator, Shard, Replication services |
 | Storage | SQLite Schema (WAL) | **Implemented** | documents, postings, update_log, metadata |
 | Indexing | Custom Inverted Index | **Implemented** | Custom Python dictionary, posting lists, document manager, tombstones |
-| Ranking | BM25 Distributed Scorer | Planned (M2) | Okapi BM25 with global stats snapshot |
+| Ranking | BM25 Distributed Scorer | **Implemented** | Okapi BM25 with global stats snapshot, tie-breaking, length normalization |
 | Persistence | Repositories & WAL Mode | Planned (M3) | Atomic transaction boundaries |
 | Sharding | Coordinator Scatter-Gather | Planned (M4) | Deterministic routing & Top-K merger |
 | Replication | Sequence Logger & Applier | Planned (M5) | Per-shard monotonic sequence tracking |
@@ -135,7 +135,7 @@ flowchart TB
     CLI -.->|Validation Dual Run| RefEngine
 ```
 
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete details on component interactions, recovery state machine, and data models.
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete details on component interactions, recovery state machine, and data models. See [MATHEMATICAL_FORMULATIONS.md](docs/MATHEMATICAL_FORMULATIONS.md) for the complete theoretical reference of BM25, global statistics, hash routing, replication lag, and evaluation benchmarks.
 
 ---
 

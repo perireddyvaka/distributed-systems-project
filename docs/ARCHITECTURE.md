@@ -324,3 +324,5 @@ Where:
 - Default hyperparameters: $k_1 = 1.2$, $b = 0.75$.
 
 Deterministic tie-breaking: If two documents have identical scores within $10^{-6}$, ties are broken by ascending `doc_id`.
+
+For complete mathematical derivations, parameter sensitivity analysis, distributed aggregation invariants, and recovery benchmark metrics, see [docs/MATHEMATICAL_FORMULATIONS.md](MATHEMATICAL_FORMULATIONS.md).
